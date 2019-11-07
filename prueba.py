@@ -6,35 +6,49 @@ from collections import Counter
 
 
 class suavizado():
+    """Clase que recibe una base de datos y suaviza la frontera de los datos para un par de atributos especificado"""
 
     def __init__(self, rutaDatos):
-        archivoTexto = io.open(rutaDatos, 'r');
-        lineas = archivoTexto.readlines();
+        """Crea una lista donde cada elemento es una matriz de número de atributos x número de datos por clase"""
 
-        self.numLineas = int(lineas[0]);
-        self.numAtributos = int(lineas[1]);
-        self.numClases = int(lineas[2]);
+        #Abrir archivo de texto para lectura
+        archivoTexto = io.open(rutaDatos, 'r')
+        #Guarda en una lista las líneas del documento
+        lineas = archivoTexto.readlines()
 
-        self.data = [np.zeros(self.numAtributos) for x in range(self.numClases)];
+        #Guarda el número de datos, el número de atributos y el número de clases
+        self.numLineas = int(lineas[0])
+        self.numAtributos = int(lineas[1])
+        self.numClases = int(lineas[2])
+
+        #Crea una lista donde cada elemento es una matriz de número de atributos x número de datos por clase
+        self.data = [np.zeros(self.numAtributos) for x in range(self.numClases)]
         for l in range(3, self.numLineas+3):
-            clase = int(lineas[l].split(',')[self.numAtributos]);
-            datLinea = lineas[l].split(',')[0:self.numAtributos];
-            datLinea = [float(i) for i in datLinea];
+            clase = int(lineas[l].split(',')[self.numAtributos])
+            datLinea = lineas[l].split(',')[0:self.numAtributos]
+            datLinea = [float(i) for i in datLinea]
 
+            #Si es el primer dato de la clase borra la matriz de ceros, si no lo agrega a la matriz
             if not self.data[clase].any():
-                self.data[clase] = np.array(datLinea);
+                self.data[clase] = np.array(datLinea)
             else:
-                self.data[clase] = np.vstack([self.data[clase], datLinea]);
+                self.data[clase] = np.vstack([self.data[clase], datLinea])
 
-        archivoTexto.close();
+        #Cierra el archivo de texto
+        archivoTexto.close()
 
     def darDatosEntrada(self, clase=-1):
+        """Retorna los datos de entrada de la clase especificada por parámetro. Si el parámetro 'clase' no
+         se especifica, se retorna los datos de todas las clases"""
         if clase == -1:
-            return self.data;
+            return self.data
         else:
-            return self.data[clase];
+            return self.data[clase]
 
     def suavizarDatosKNN(self, atributos, k=-1):
+        """Retorna una lista donde cada elemento contiene una lista con los valores de los atributos especificados
+        por parámetro y la clase de ese dato después de suavizar la frontera"""
+
         #Si no se especifica un k, se emplea el número de clases más uno, así siempre habrá una clase con mayoría
         if k == -1:
             k = self.numClases+1
@@ -77,25 +91,39 @@ class suavizado():
                 dS.pop(inD)
 
         print(len(dS))
-        return dS;
+        return dS
 
 
     def graficarDatosEntrada(self, atributos, ruta):
+        """Grafica los datos de entrada en un plano de dispersión cuyos ejes son los atributos especificados.
+        Almacena la gráfica en la ruta introducida como parámetro"""
+
+        #Define el título de la gráfica y el nombre de los ejes
         plt.title("Dispersión de datos de entrada")
         plt.xlabel("Atributo {}".format(atributos[0]))
         plt.ylabel("Atributo {}".format(atributos[1]))
-        for cl,dat in enumerate(self.data):
-            plt.scatter(dat[:,atributos[0]], dat[:,atributos[1]], label = 'Clase {}'.format(cl));
 
-        plt.legend(loc=0);
-        plt.savefig(ruta);
-        plt.close();
+        #Recorre la matriz de datos y los grafica por clases
+        for cl,dat in enumerate(self.data):
+            plt.scatter(dat[:,atributos[0]], dat[:,atributos[1]], label = 'Clase {}'.format(cl))
+
+        #Coloca la legenda de los datos correspondiente a su clase
+        plt.legend(loc=0)
+        plt.savefig(ruta)
+
+        #Cierra la gráfica
+        plt.close()
 
     def graficarDatos(self, datos, atributos, ruta):
+        """Grafica los datos introducidos en un plano de dispersión cuyos ejes son los atributos especificados.
+        Almacena la gráfica en la ruta introducida como parámetro"""
+
+        #Define el título de la gráfica y el nombre de los ejes
         plt.title("Dispersión de datos suavizados")
         plt.xlabel("Atributo {}".format(atributos[0]))
         plt.ylabel("Atributo {}".format(atributos[1]))
 
+        #Recorre la matriz de datos y los grafica por clases
         datosForma = [np.zeros(len(atributos)) for x in range(self.numClases)]
         for dato in datos:
             clase = dato[2]
@@ -106,17 +134,24 @@ class suavizado():
                 datosForma[clase] = np.vstack([datosForma[clase], datLinea])
 
         for cl,dat in enumerate(datosForma):
-            plt.scatter(dat[:,0], dat[:,1], label = 'Clase {}'.format(cl));
+            plt.scatter(dat[:,0], dat[:,1], label = 'Clase {}'.format(cl))
 
-        plt.legend(loc=3);
-        plt.savefig(ruta);
-        plt.close();
+        #Coloca la legenda de los datos correspondiente a su clase
+        plt.legend(loc=3)
+        plt.savefig(ruta)
+
+        #Cierra la gráfica
+        plt.close()
 
 
-    def estado(self):
-        print(self.data);
-
-
+#Crea un objeto de la clase encargada de suavizar los datos con los datos del archivo de texto especificado
 app = suavizado("seg-data.txt")
+
+#Grafica los datos de entrada y los almacena en la ruta especificada
 app.graficarDatosEntrada([0, 1], "prueba.jpg")
-app.graficarDatos(app.suavizarDatosKNN([0, 1]), [0, 1], "pruebaSuav.jpg")
+
+#Suaviza la frontera de los datos para los atributos especificados
+datosSuavizados = app.suavizarDatosKNN([0, 1])
+
+#Grafica los datos suavizados y los almacena en la ruta especificada
+app.graficarDatos(datosSuavizados, [0, 1], "pruebaSuav.jpg")
