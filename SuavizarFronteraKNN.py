@@ -53,9 +53,6 @@ class suavizado():
         if k == -1:
             k = self.numClases+1
 
-        #Construye la matriz de datos suavizados, en principio es igual a los datos de entrada
-        #datSuavizado = self.data
-
         #Itera sobre las clases de los datos y almacena en d cada punto
         d = []
         for cl,dat in enumerate(self.data):
@@ -66,8 +63,6 @@ class suavizado():
                 punto = dat[f, atributos]
                 #d es una lista de 3 columnas: las coordenadas de los atributos y la clase
                 d.append([punto[0], punto[1], cl])
-        dS = d
-        print(len(dS))
 
         #Itera sobre los puntos
         for inD,pD in enumerate(d):
@@ -77,21 +72,25 @@ class suavizado():
                 if n == inD:
                     dist.append(444444)
                 else:
-                    dist.append(np.sqrt((pD[0] - d[n][0])**2 + (pD[1] - d[n][1])**2))
+                    dist.append((pD[0] - d[n][0])**2 + (pD[1] - d[n][1])**2)
 
             #Obtener las k distancias más cercanas y las clases de estos
             kPuntosMasCerca = np.argsort(dist)[:k]
             kClasesMasCerca = [d[i][2] for i in kPuntosMasCerca]
+            count = 0
+            if 1 in kClasesMasCerca:
+                count += 1
 
             #Clase con más puntos cercanos
             claseMasCerca = Counter(kClasesMasCerca).most_common(1)[0][0]
 
             #Si la clase con más puntos cercanos no es la clase del punto pD, este se borra
-            if pD[2] != claseMasCerca:
-                dS.pop(inD)
+            clases = [i for i in range(self.numClases)]
+            clases.remove(pD[2])
+            if any(elem in kClasesMasCerca for elem in clases):#pD[2] in claseMasCerca:
+                d.pop(inD)
 
-        print(len(dS))
-        return dS
+        return d
 
 
     def graficarDatosEntrada(self, atributos, ruta):
@@ -102,13 +101,14 @@ class suavizado():
         plt.title("Dispersión de datos de entrada")
         plt.xlabel("Atributo {}".format(atributos[0]))
         plt.ylabel("Atributo {}".format(atributos[1]))
+        #plt.axis([160, 180, 220, 230])
 
         #Recorre la matriz de datos y los grafica por clases
         for cl,dat in enumerate(self.data):
             plt.scatter(dat[:,atributos[0]], dat[:,atributos[1]], label = 'Clase {}'.format(cl))
 
         #Coloca la legenda de los datos correspondiente a su clase
-        plt.legend(loc=0)
+        plt.legend(loc=3)
         plt.savefig(ruta)
 
         #Cierra la gráfica
@@ -122,6 +122,7 @@ class suavizado():
         plt.title("Dispersión de datos suavizados")
         plt.xlabel("Atributo {}".format(atributos[0]))
         plt.ylabel("Atributo {}".format(atributos[1]))
+        #plt.axis([160, 180, 220, 230])
 
         #Recorre la matriz de datos y los grafica por clases
         datosForma = [np.zeros(len(atributos)) for x in range(self.numClases)]
@@ -145,13 +146,13 @@ class suavizado():
 
 
 #Crea un objeto de la clase encargada de suavizar los datos con los datos del archivo de texto especificado
-app = suavizado("seg-data.txt")
+app = suavizado("sintetico.txt")
 
-#Grafica los datos de entrada y los almacena en la ruta especificada
-app.graficarDatosEntrada([0, 1], "prueba.jpg")
+#Grafica los datos de entrada, para los atributos dados [atr1, atr2] y los almacena en la ruta especificada
+app.graficarDatosEntrada([0, 1], "prueba.png")
 
-#Suaviza la frontera de los datos para los atributos especificados
-datosSuavizados = app.suavizarDatosKNN([0, 1])
+#Suaviza la frontera de los datos para los atributos especificados [atr1, atr2]
+datosSuavizados = app.suavizarDatosKNN([0, 1], 10)
 
-#Grafica los datos suavizados y los almacena en la ruta especificada
-app.graficarDatos(datosSuavizados, [0, 1], "pruebaSuav.jpg")
+#Grafica los datos suavizados, para los atributos dados [atr1, atr2] y los almacena en la ruta especificada
+app.graficarDatos(datosSuavizados, [0, 1], "pruebaSuav.png")
