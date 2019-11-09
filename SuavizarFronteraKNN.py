@@ -135,7 +135,10 @@ class suavizado():
                 datosForma[clase] = np.vstack([datosForma[clase], datLinea])
 
         for cl,dat in enumerate(datosForma):
-            plt.scatter(dat[:,0], dat[:,1], label = 'Clase {}'.format(cl))
+            if len(dat) != 2:
+                plt.scatter(dat[:,0], dat[:,1], label = 'Clase {}'.format(cl))
+            else:
+                plt.scatter(dat[0], dat[1], label = 'Clase {}'.format(cl))
 
         #Coloca la legenda de los datos correspondiente a su clase
         plt.legend(loc=3)
@@ -146,13 +149,13 @@ class suavizado():
 
 
 #Crea un objeto de la clase encargada de suavizar los datos con los datos del archivo de texto especificado
-app = suavizado("sintetico.txt")
+app = suavizado("seg-data.txt")
 
 #Grafica los datos de entrada, para los atributos dados [atr1, atr2] y los almacena en la ruta especificada
-app.graficarDatosEntrada([0, 1], "prueba.png")
+app.graficarDatosEntrada([3, 4], "prueba.png")
 
 #Suaviza la frontera de los datos para los atributos especificados [atr1, atr2]
-datosSuavizados = app.suavizarDatosKNN([0, 1], 10)
+datosSuavizados = app.suavizarDatosKNN([3, 4], 10)
 
 #Grafica los datos suavizados, para los atributos dados [atr1, atr2] y los almacena en la ruta especificada
-app.graficarDatos(datosSuavizados, [0, 1], "pruebaSuav.png")
+app.graficarDatos(datosSuavizados, [3, 4], "pruebaSuav.png")
